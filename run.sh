@@ -1,5 +1,7 @@
 #!/bin/bash
 
+ADMIN_PASSWORD=docker
+PASSWORD_FILE=/etc/nginx/.htpasswd
 NGINX_REGISTRY_URL=${REGISTRY_PORT#tcp://}
 
 # nginx config
@@ -21,7 +23,7 @@ server {
 
   location / {
     auth_basic "";
-    auth_basic_user_file /etc/nginx/.htpasswd;
+    auth_basic_user_file $PASSWORD_FILE;
     proxy_pass http://docker-registry;
     proxy_set_header Authorization "";
   }
@@ -37,6 +39,11 @@ server {
   }
 }
 EOF
+
+# create password file
+if [ ! -e $PASSWORD_FILE ] ; then
+    htpasswd -bc $PASSWORD_FILE admin $ADMIN_PASSWORD
+fi
 
 # enable site
 ln -s /etc/nginx/sites-available/docker-registry.conf /etc/nginx/sites-enabled/docker-registry.conf

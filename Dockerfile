@@ -13,7 +13,6 @@ RUN \
   chown -R www-data:www-data /var/lib/nginx
 RUN rm -f /etc/nginx/sites-enabled/default
 ADD run.sh /usr/local/bin/run
-ADD htpasswd /etc/nginx/.htpasswd
 VOLUME ["/data", "/etc/nginx/sites-enabled", "/var/log/nginx"]
 WORKDIR /etc/nginx
 CMD ["/usr/local/bin/run"]
