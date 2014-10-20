@@ -13,8 +13,11 @@ upstream docker-registry {
 server {
   listen 80;
 
-  proxy_set_header Host \$http_host; # required for docker client's sake
-  proxy_set_header X-Real-IP \$remote_addr; # pass on real client's IP
+  proxy_set_header  Host              \$http_host;   # required for docker client's sake
+  proxy_set_header  X-Real-IP         \$remote_addr; # pass on real client's IP
+  proxy_set_header  Authorization     "";            # see https://github.com/dotcloud/docker-registry/issues/170
+
+  proxy_read_timeout               900;
 
   client_max_body_size 0; # disable any limits to avoid HTTP 413 for large image uploads
 
@@ -22,18 +25,17 @@ server {
   chunked_transfer_encoding on;
 
   location / {
-    auth_basic "";
+    auth_basic "Restricted";
     auth_basic_user_file $PASSWORD_FILE;
     proxy_pass http://docker-registry;
-    proxy_set_header Authorization "";
   }
 
-  location /v1/_ping {
+  location /_ping {
     auth_basic off;
     proxy_pass http://docker-registry;
   }
 
-  location /v1/users {
+  location /v1/_ping {
     auth_basic off;
     proxy_pass http://docker-registry;
   }
