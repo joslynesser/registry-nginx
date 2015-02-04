@@ -1,8 +1,12 @@
 #!/bin/bash
 
-ADMIN_PASSWORD=docker
-PASSWORD_FILE=/etc/nginx/.htpasswd
 NGINX_REGISTRY_URL=${REGISTRY_PORT#tcp://}
+PASSWORD_FILE=/etc/nginx/.htpasswd
+
+if [[ "$DOCKER_PASSWORD" == "" ]] || [ ! -e $PASSWORD_FILE ]; then
+  echo "Must set DOCKER_PASSWORD or mount $PASSWORD_FILE"
+  exit 1
+fi
 
 # nginx config
 cat << EOF > /etc/nginx/sites-available/docker-registry.conf
@@ -44,7 +48,7 @@ EOF
 
 # create password file
 if [ ! -e $PASSWORD_FILE ] ; then
-    htpasswd -bc $PASSWORD_FILE admin $ADMIN_PASSWORD
+    htpasswd -bc $PASSWORD_FILE docker $DOCKER_PASSWORD
 fi
 
 # enable site
