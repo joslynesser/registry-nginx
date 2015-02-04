@@ -1,10 +1,10 @@
 #
-# Nginx reverse proxy for docker-registry
-# based on https://github.com/dockerfile/nginx
+# Nginx reverse proxy for library/registry
+# based on bshaw/registry-nginx
 #
 
-FROM dockerfile/ubuntu
-MAINTAINER Brian Shaw <bshaw@appartus.net>
+FROM ubuntu:14.04
+MAINTAINER Joslyn Esser <jesser@salesforce.com>
 RUN \
   add-apt-repository -y ppa:nginx/stable && \
   apt-get update && \
