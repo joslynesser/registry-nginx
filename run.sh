@@ -3,6 +3,10 @@
 NGINX_REGISTRY_URL=${REGISTRY_PORT#tcp://}
 PASSWORD_FILE=/etc/nginx/.htpasswd
 
+if [ "$DOCKER_USER" == "" ]; then
+  DOCKER_USER="docker"
+fi
+
 if [ "$DOCKER_PASSWORD" == "" ] && [ ! -e $PASSWORD_FILE ]; then
   echo "Must set DOCKER_PASSWORD or mount $PASSWORD_FILE"
   exit 1
@@ -67,7 +71,7 @@ EOF
 
 # create password file
 if [ ! -e $PASSWORD_FILE ] ; then
-  htpasswd -bc $PASSWORD_FILE docker $DOCKER_PASSWORD
+  htpasswd -bc $PASSWORD_FILE $DOCKER_USER $DOCKER_PASSWORD
 fi
 
 # start nginx
