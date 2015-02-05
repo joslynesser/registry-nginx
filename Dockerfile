@@ -2,9 +2,9 @@
 # Nginx reverse proxy for library/registry
 # based on library/nginx + bshaw/registry-nginx
 #
-
 FROM nginx:1.7.9
 MAINTAINER Joslyn Esser <jesser@salesforce.com>
+
 RUN \
   apt-get update && \
   apt-get install -y \
