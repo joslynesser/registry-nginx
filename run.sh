@@ -1,6 +1,5 @@
 #!/bin/bash
 
-NGINX_REGISTRY_URL=${REGISTRY_PORT#tcp://}
 PASSWORD_FILE=/etc/nginx/.htpasswd
 
 if [ "$DOCKER_USER" == "" ]; then
@@ -15,7 +14,11 @@ fi
 # nginx config
 cat << EOF > /etc/nginx/conf.d/docker-registry.conf
 upstream docker-registry {
-  server $NGINX_REGISTRY_URL;
+  server $REGISTRY_PORT_5000_TCP_ADDR:$REGISTRY_PORT_5000_TCP_PORT;
+}
+
+upstream docker-registry-debug {
+  server $REGISTRY_PORT_5001_TCP_ADDR:$REGISTRY_PORT_5001_TCP_PORT;
 }
 
 server {
@@ -35,14 +38,14 @@ server {
   ssl_certificate /etc/ssl/certs/docker-registry.crt;
   ssl_certificate_key /etc/ssl/private/docker-registry.key;
 
-  # HSTS
   add_header Strict-Transport-Security max-age=15768000;
+  add_header Docker-Distribution-Api-Version: registry/2.0 always;
 
   proxy_set_header  Host              \$http_host;   # required for docker client's sake
   proxy_set_header  X-Real-IP         \$remote_addr; # pass on real client's IP
   proxy_set_header  X-Forwarded-Proto \$scheme;
-  proxy_set_header  Authorization     "";            # see https://github.com/dotcloud/docker-registry/issues/170
-
+  proxy_set_header  X-Forwarded-For   \$proxy_add_x_forwarded_for;
+  proxy_set_header Docker-Distribution-Api-Version registry/2.0;
   proxy_read_timeout 900;
 
   # disable any limits to avoid HTTP 413 for large image uploads
@@ -51,19 +54,13 @@ server {
   # required to avoid HTTP 411: see Issue #1486 (https://github.com/dotcloud/docker/issues/1486)
   chunked_transfer_encoding on;
 
-  location / {
+  location /debug/health {
+    proxy_pass http://docker-registry-debug;
+  }
+
+  location /v2/ {
     auth_basic "Restricted";
     auth_basic_user_file $PASSWORD_FILE;
-    proxy_pass http://docker-registry;
-  }
-
-  location /_ping {
-    auth_basic off;
-    proxy_pass http://docker-registry;
-  }
-
-  location /v1/_ping {
-    auth_basic off;
     proxy_pass http://docker-registry;
   }
 }
